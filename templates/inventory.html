@@ -1,48 +1,51 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <style>
-        h2 {
-        font-family: Georgia, 'Times New Roman', Times, serif;
-      }
 
-      table {
-        font-family: Georgia, 'Times New Roman', Times, serif;
-        border-collapse: collapse;
-        width: 100%;
-      }
+<head>
+  <style>
+    h2 {
+      font-family: Georgia, 'Times New Roman', Times, serif;
+    }
 
-      td, th {
-        border: 1px solid #dddddd;
-        text-align: left;
-        padding: 8px;
-      }
+    table {
+      font-family: Georgia, 'Times New Roman', Times, serif;
+      border-collapse: collapse;
+      width: 100%;
+    }
 
-      tr:nth-child(even) {
-        background-color: #dddddd;
-      }
-    </style>
-  </head>
+    td,
+    th {
+      border: 1px solid #dddddd;
+      text-align: left;
+      padding: 8px;
+    }
 
-  <body>
-    <h2>View Inventory</h2>
+    tr:nth-child(even) {
+      background-color: #dddddd;
+    }
+  </style>
+</head>
 
-    <table>
-      <tr>
-        <th>Product ID</th>
-        <th>Product</th>
-        <th>Category</th>
-        <th>Inventory Left</th>
-      </tr>
-  
-      {% for item in data %}
-        <tr>
-          <td>{{item[0]}}</td>
-          <td>{{item[1]}}</td>
-          <td>{{item[2]}}</td>
-          <td>{{item[4]}}</td>
-        </tr>
-      {% endfor %}
-    </table>
-  </body>
+<body>
+  <h2>View Inventory</h2>
+
+  <table>
+    <tr>
+      <th>Product ID</th>
+      <th>Product</th>
+      <th>Category</th>
+      <th>Inventory Left</th>
+    </tr>
+
+    {% for item in data %}
+    <tr>
+      <td>{{item[0]}}</td>
+      <td>{{item[1]}}</td>
+      <td>{{item[2]}}</td>
+      <td>{{item[4]}}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</body>
+
 </html>
