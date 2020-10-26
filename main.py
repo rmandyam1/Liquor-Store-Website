@@ -9,6 +9,30 @@ app = Flask(__name__)
 def homepage():
     return render_template("home.html", title="HOME PAGE")
 
+@app.route("/viewproducts")
+def view_products():
+    try:
+        cnx = mysql.connector.connect(user='root', password='12345', host='104.154.215.223', database='village_bottle_shoppe')
+    except mysql.connector.Error as err:
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            print("Something is wrong with your user name or password")
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            print("Database does not exist")
+        else:
+            print(err)
+
+    cursor = cnx.cursor()
+    query = "SELECT * FROM Product" #product contains all inventory
+    cursor.execute(query)
+    data = cursor.fetchall()
+
+    for (productId, name, category, description, inventoryQuantity, price) in cursor:
+        print(productId, name, category, description, inventoryQuantity, price)
+
+    cursor.close()
+    cnx.close()
+    return render_template("viewproducts.html", data=data)
+
 @app.route("/viewinventory")
 def view_inventory():
     try:
