@@ -4,26 +4,23 @@
 <head>
     <style>
         * {
+            box-sizing: border-box;
             font-family: Helvetica, sans-serif;
-        }
-        
-        h2 {
-            font-size: 30px;
         }
 
         .grid-container {
             display: grid;
-            grid-template-columns: auto auto auto;
+            grid-template-columns: repeat(5, 1fr);
             background-color: #ffffff;
         }
 
         .grid-item {
-            background-color: #ffffff;
-            padding: 20px;
-            margin: 10px;
+            background-color: #f1f1f1;
+            padding: 16px;
             text-align: center;
-            box-shadow: 2px 2px 5px #dddddd;
-            padding-bottom: 30%;
+            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+            margin: 10px;
+            /* padding-bottom: 30%; */
         }
 
         .parallel {
@@ -34,14 +31,15 @@
 
 <body>
 
-    <h1>View Items</h1>
+    <h2>View Items</h2>
 
     <div class="grid-container">
         {% for item in data %}
         <div class="grid-item">
-            <h2>{{item[1]}}</h2>
+            <h3>{{item[1]}}</h3>
             <p>{{item[2]}}</p>
-            <p>${{item[5]}}</p>
+            <p><small>{{item[3]}}</small></p>
+            <h4>${{item[5]}}</h4>
             <div class="parallel">
                 <p style="float:left"><a href="https://www.w3schools.com/">View Product</a></p>
                 <p style="float:right"><a href="https://www.w3schools.com/">Add To Cart</a></p>
