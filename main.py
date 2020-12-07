@@ -91,7 +91,7 @@ def sales_by_customer():
             print(err)
 
     cursor = cnx.cursor()
-    query = "SELECT Orders.customerId, Customer.firstName, Customer.lastName, COUNT(orderId), SUM(transactionAmount) FROM Orders INNER JOIN Customer ON Orders.customerId = Customer.customerId WHERE orderId IS NOT NULL GROUP BY Orders.customerId" # Finding OrderIds by customer
+    query = "SELECT Orders.customerId, Customer.firstName, Customer.lastName, COUNT(orderId), SUM(transactionAmount), AVG(transactionAmount) FROM Orders INNER JOIN Customer ON Orders.customerId = Customer.customerId WHERE orderId IS NOT NULL GROUP BY Orders.customerId" # Finding OrderIds by customer
     cursor.execute(query)
     data = cursor.fetchall()
 
