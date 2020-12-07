@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: Helvetica, sans-serif;
+        }
+
+        /* Float four columns side by side */
+        .column {
+            float: left;
+            width: 20%;
+            padding: 0 10px;
+        }
+
+        /* Remove extra left and right margins, due to padding */
+        .row {
+            margin: 10 -5px;
+        }
+
+        /* Clear floats after the columns */
+        .row:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+
+        /* Responsive columns */
+        @media screen and (max-width: 600px) {
+            .column {
+                width: 100%;
+                display: block;
+                margin-bottom: 20px;
+            }
+        }
+
+        /* Style the counter cards */
+        .card {
+            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+            padding: 16px;
+            text-align: center;
+            background-color: #f1f1f1;
+        }
+
+        .parallel {
+            overflow: hidden;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>Bestsellers</h2>
+    <p>Resize the browser window to see the effect.</p>
+
+    <div class="row">
+        {% for item in data %}
+        <div class="column">
+            <div class="card">
+                <h3>{{item[0]}}</h3>
+                <p>{{item[1]}}</p>
+                <p>{{item[2]}}</p>
+                <p>{{item[3]}}</p>
+                <div class="parallel">
+                    <p style="float:left"><a href="https://www.w3schools.com/">View Product</a></p>
+                    <p style="float:right"><a href="https://www.w3schools.com/">Add To Cart</a></p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+</body>
+
+</html>

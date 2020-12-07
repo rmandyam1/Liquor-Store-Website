@@ -11,7 +11,7 @@ def homepage():
 
 @app.route("/viewproducts")
 def view_products():
-    data = select_all_ps("Product")]
+    data = select_all_ps("Product")
     return render_template("viewproducts.html", data=data)
 
 @app.route("/viewinventory")
@@ -103,6 +103,48 @@ def select_all_ps(table_name):
     cnx.close()
 
     return data
+
+def completed_orders_ps():
+    try:
+        cnx = mysql.connector.connect(user='root', password='12345', host='104.154.215.223', database='village_bottle_shoppe')
+    except mysql.connector.Error as err:
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            print("Something is wrong with your user name or password")
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            print("Database does not exist")
+        else:
+            print(err)
+
+    cursor = cnx.cursor()
+    query = "SELECT orderId FROM Orders WHERE completedDate IS NOT NULL"
+    cursor.execute(query)
+    data = cursor.fetchall()
+
+    cursor.close()
+    cnx.close()
+    return data
+
+@app.route("/bestsellers")
+def view_top_sellers():
+    try:
+        cnx = mysql.connector.connect(user='root', password='12345', host='104.154.215.223', database='village_bottle_shoppe')
+    except mysql.connector.Error as err:
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            print("Something is wrong with your user name or password")
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            print("Database does not exist")
+        else:
+            print(err)
+
+    cursor = cnx.cursor()
+    query = "SELECT DISTINCT p.name, p.category, p.description, p.price, o.quantity, p.inventoryQuantity FROM Product p, OrderItem o WHERE o.productId = p.productId AND o.orderId IN (SELECT orderId FROM Orders WHERE completedDate IS NOT NULL) ORDER BY o.quantity DESC LIMIT 5;"
+    cursor.execute(query)
+    data = cursor.fetchall()
+
+    cursor.close()
+    cnx.close()
+    return render_template("bestsellers.html", data=data)
+
 
 if __name__ == "__main__":
     app.run(debug=True)
