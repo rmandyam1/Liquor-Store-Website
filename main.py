@@ -4,6 +4,8 @@ import mysql.connector
 from mysql.connector import errorcode
 
 app = Flask(__name__)
+username = "admin"
+password = "password123"
 
 
 @app.route("/")
@@ -196,7 +198,7 @@ def add_to_cart(customer_id, qty, product_id):
     return data
 
 
-def check_inventory(product_id):
+def check_inventory(qty, product_id):
     try:
         cnx = mysql.connector.connect(
             user='root', password='12345', host='104.154.215.223', database='village_bottle_shoppe')
@@ -228,7 +230,7 @@ def result():
         result = request.form
         qty = result.get("quantity")
         product_id = result.get("productId")
-        bool_add = check_inventory(product_id)
+        bool_add = check_inventory(qty, product_id)
 
         if (bool_add):
             add_to_cart(customer_id, qty, productId)
@@ -318,6 +320,21 @@ def loginuser():
         cursor.close()
         cnx.close()
         return render_template("begin.html", title="Village Bottle Shoppe", error="Database_issues")
+
+@app.route("/tryloginseller", methods=['GET', 'POST'])
+def tryloginseller():
+    return render_template('sellerlogin.html')
+
+
+@app.route("/loginseller", methods=['GET', 'POST'])
+def loginseller():
+    username = request.form['username']
+    password = request.form['password']
+
+    if (username == "admin" and password == "password123"):
+        return render_template("sellerhome.html")
+    else:
+        return render_template("begin.html", title="Village Bottle Shoppe", error="Unsuccessful_seller_login")
 
 
 if __name__ == "__main__":
