@@ -8,7 +8,7 @@ app = Flask(__name__)
 
 @app.route("/")
 def homepage():
-    return render_template("begin.html", title="Village Bottle Shoppe")
+    return render_template("begin.html", title="Village Bottle Shoppe", error="<None>")
 
 
 @app.route("/viewproducts")
@@ -249,7 +249,7 @@ def registeruser():
     acc_num = request.form.get('accNum')
     routing_num = request.form.get('routeNum')
     if (int(age) < 21):
-        return render_template("begin.html", title="Village Bottle Shoppe")
+        return render_template("begin.html", title="Village Bottle Shoppe", error="Underage")
 
     try:
         cnx = mysql.connector.connect(user='root', password='12345', host='104.154.215.223', database='village_bottle_shoppe', autocommit=False)
@@ -265,6 +265,8 @@ def registeruser():
         cursor.execute("INSERT INTO Orders(completedDate, transactionAmount, customerId) VALUES(NULL, NULL, %s);" % (user_id[0]))
         cnx.commit()
 
+        cursor.close()
+        cnx.close()
         return render_template("accountcreated.html", userId=user_id[0], userName=first_name)
 
     except mysql.connector.Error as err:
@@ -282,9 +284,45 @@ def registeruser():
         cnx.close()
 
 
+@app.route("/trylogin", methods=['GET', 'POST'])
+def trylogin():
+    return render_template('login.html')
+
+
+@app.route("/loginuser", methods=['GET', 'POST'])
+def loginuser():
+    user_id = request.form['userId']
+
+    try:
+        cnx = mysql.connector.connect(user='root', password='12345', host='104.154.215.223', database='village_bottle_shoppe')
+
+        cursor = cnx.cursor()
+        cursor.execute("SELECT customerId FROM Customer WHERE customerId = %s;" % user_id)
+        customerId = cursor.fetchall()
+        if cursor.rowcount == 1:
+            # Login successful
+            cursor.close()
+            cnx.close()
+            return render_template("home.html", userId=customerId)
+        else:
+            return render_template("begin.html", title="Village Bottle Shoppe", error="Unsuccessful_login")
+
+    except mysql.connector.Error as err:
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            print("Something is wrong with your user name or password")
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            print("Database does not exist")
+        else:
+            print(err)
+        
+        cursor.close()
+        cnx.close()
+        return render_template("begin.html", title="Village Bottle Shoppe", error="Database_issues")
+
+
 if __name__ == "__main__":
     app.run(debug=True)
-    render_template("begin.html", title="Village Bottle Shoppe")
+    render_template("begin.html", title="Village Bottle Shoppe", error="<None>")
 
 # @app.route("/")
 # def homepage():

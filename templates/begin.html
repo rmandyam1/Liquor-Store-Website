@@ -59,11 +59,21 @@
 
 <body>
     <div class="header">
+        <script id="errorCheck" data-error={{error}}>
+            function checkError() {
+                error=document.getElementById('errorCheck').getAttribute("data-error");
+                // window.alert(error);
+                if (error != "<None>") {
+                    alert(error);
+                }
+            }
+            checkError();
+        </script>
         <h1>Village Bottle Shoppe</h1>
         <p>Your one stop shop for all liquor needs.</p>
         <div class="parallel">
             <a href="/getuserinput"><button class="button">Register as new user</button></a>
-            <a href="/bestsellers"><button class="button">Login</button></a>
+            <a href="/trylogin"><button class="button">Login</button></a>
             <a href="/bestsellers"><button class="button">Login as seller</button></a>
         </div>
     </div>
