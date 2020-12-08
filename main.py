@@ -6,11 +6,18 @@ from mysql.connector import errorcode
 app = Flask(__name__)
 username = "admin"
 password = "password123"
+alc_categories = ["wine", "tequila", "vodka", "whiskey", "gin", "beer", "liqueur"]
+cid = -1
 
 
 @app.route("/")
 def homepage():
     return render_template("begin.html", title="Village Bottle Shoppe", error="<None>")
+
+
+def get_cid():
+    global cid
+    return cid
 
 
 def select_all_ps(table_name):
@@ -26,7 +33,7 @@ def select_all_ps(table_name):
             print(err)
 
     cursor = cnx.cursor()
-    query = "SELECT * FROM %s" % table_name
+    query = "SELECT * FROM %s;" % table_name
     cursor.execute(query)
     data = cursor.fetchall()
 
@@ -36,19 +43,65 @@ def select_all_ps(table_name):
     return data
 
 
+def products_by_category(category):
+    try:
+        cnx = mysql.connector.connect(
+            user='root', password='12345', host='104.154.215.223', database='village_bottle_shoppe')
+    except mysql.connector.Error as err:
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            print("Something is wrong with your user name or password")
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            print("Database does not exist")
+        else:
+            print(err)
+
+    cursor = cnx.cursor(prepared=True)
+    query = "SELECT * FROM Product WHERE category = %s;"
+    cursor.execute(query, (category, ))
+    data = cursor.fetchall()
+
+    cursor.close()
+    cnx.close()
+    return data
+
+@app.route("/viewbycategory")
+def view_by_category():
+    return 0
+
+def get_categories():
+    try:
+        cnx = mysql.connector.connect(
+            user='root', password='12345', host='104.154.215.223', database='village_bottle_shoppe')
+    except mysql.connector.Error as err:
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            print("Something is wrong with your user name or password")
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            print("Database does not exist")
+        else:
+            print(err)
+
+    cursor = cnx.cursor()
+    query = "SELECT category, COUNT(productId) FROM Product GROUP BY category ORDER BY COUNT(productId) DESC;"
+    cursor.execute(query)
+    data = cursor.fetchall()
+
+    cursor.close()
+    cnx.close()
+    return data
+
 @app.route("/viewproducts")
 def view_products():
     data = select_all_ps("Product")
-    return render_template("viewproducts.html", data=data)
+    return render_template("viewproducts.html", title="Products | Village Bottle Shoppe", data=data)
 
 
 @app.route("/viewinventory")
 def view_inventory():
     data = select_all_ps("Product")
-    return render_template("inventory.html", data=data)
+    return render_template("inventory.html", title="Inventory | Village Bottle Shoppe", data=data)
 
 
-def get_cart_id(customer_id):
+def customer_order_history():
     try:
         cnx = mysql.connector.connect(
             user='root', password='12345', host='104.154.215.223', database='village_bottle_shoppe')
@@ -61,35 +114,11 @@ def get_cart_id(customer_id):
             print(err)
 
     cursor = cnx.cursor(prepared=True)
-    query = """SELECT orderId FROM Orders WHERE customerId = %s AND completedDate IS NULL"""  # Finding CartID
-    cursor.execute(query, (customer_id, ))
-    data = cursor.fetchone()
-    cnx.commit()
-
-    cursor.close()
-    cnx.close()
-    return data
-
-
-def customer_order_history(customer_id):
-    try:
-        cnx = mysql.connector.connect(
-            user='root', password='12345', host='104.154.215.223', database='village_bottle_shoppe')
-    except mysql.connector.Error as err:
-        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-            print("Something is wrong with your user name or password")
-        elif err.errno == errorcode.ER_BAD_DB_ERROR:
-            print("Database does not exist")
-        else:
-            print(err)
-
-    cursor = cnx.cursor(prepared=True)
-    cart_id = get_cart_id(customer_id)
+    cart_id = get_cart_id()
     # Finding OrderIds that are not cart
-    query = "SELECT orderId, transactionAmount, customerId FROM Orders WHERE orderId <> %s" % cart_id
+    query = "SELECT orderId, transactionAmount, customerId FROM Orders WHERE orderId <> %s;" % cart_id
     cursor.execute(query)
     data = cursor.fetchall()
-    cnx.commit()
 
     cursor.close()
     cnx.close()
@@ -111,13 +140,13 @@ def sales_by_customer():
 
     cursor = cnx.cursor()
     # Finding OrderIds by customer
-    query = "SELECT Orders.customerId, Customer.firstName, Customer.lastName, COUNT(orderId), SUM(transactionAmount), AVG(transactionAmount) FROM Orders INNER JOIN Customer ON Orders.customerId = Customer.customerId WHERE orderId IS NOT NULL GROUP BY Orders.customerId"
+    query = "SELECT Orders.customerId, Customer.firstName, Customer.lastName, COUNT(orderId), SUM(transactionAmount), AVG(transactionAmount) FROM Orders INNER JOIN Customer ON Orders.customerId = Customer.customerId WHERE orderId IS NOT NULL GROUP BY Orders.customerId;"
     cursor.execute(query)
     data = cursor.fetchall()
 
     cursor.close()
     cnx.close()
-    return render_template("salesbycustomer.html", data=data)
+    return render_template("salesbycustomer.html", title="Sales Report | Village Bottle Shoppe", data=data)
 
 
 def completed_orders_ps():
@@ -133,7 +162,7 @@ def completed_orders_ps():
             print(err)
 
     cursor = cnx.cursor()
-    query = "SELECT orderId FROM Orders WHERE completedDate IS NOT NULL"
+    query = "SELECT orderId FROM Orders WHERE completedDate IS NOT NULL;"
     cursor.execute(query)
     data = cursor.fetchall()
 
@@ -164,7 +193,32 @@ def view_top_sellers():
     return data
 
 
-def add_to_cart(customer_id, qty, product_id):
+def get_cart_id():
+    try:
+        cnx = mysql.connector.connect(
+            user='root', password='12345', host='104.154.215.223', database='village_bottle_shoppe')
+    except mysql.connector.Error as err:
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            print("Something is wrong with your user name or password")
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            print("Database does not exist")
+        else:
+            print(err)
+
+    cursor = cnx.cursor(prepared=True)
+    print(get_cid())
+    # query = "SELECT orderId FROM Orders WHERE customerId = %s AND completedDate IS NULL"  # Finding CartID
+    cursor.execute("SELECT orderId FROM Orders WHERE customerId = %s AND completedDate IS NULL;" % (get_cid(), ))
+    data = cursor.fetchall()
+    print(data[0])
+    print("data[0][0]", data[0][0])
+
+    cursor.close()
+    cnx.close()
+    return data[0][0]
+
+
+def add_to_cart(qty, product_id):
     try:
         cnx = mysql.connector.connect(
             user='root', password='12345', host='104.154.215.223', database='village_bottle_shoppe')
@@ -177,24 +231,27 @@ def add_to_cart(customer_id, qty, product_id):
             print(err)
 
     cursor = cnx.cursor()
-    order_id = get_cart_id(customer_id)
-    checkIfExists = "SELECT quantity FROM OrderItem WHERE orderId = %s AND productId = %s" % (
-        order_id, product_id)
-    cursor.execute(checkIfExists)
+    order_id = get_cart_id()
+    print("Back from get cart")
+    print(product_id)
+    print(qty)
+    cursor.execute("SELECT name, category, price FROM Product WHERE productId = %s;" % product_id)
+    data1 = cursor.fetchall()
+    cursor.execute("SELECT quantity FROM OrderItem WHERE orderId = %s AND productId = %s;" % (order_id, product_id))
     data = cursor.fetchall()
     num = cursor.rowcount
     if (num == 0):
-        query = "INSERT INTO OrderItem VALUES(%s, %s, %s)" % (
+        query = "INSERT INTO OrderItem VALUES(%s, %s, %s);" % (
             order_id, product_id, qty)
         cursor.execute(query)
     else:
-        query = "UPDATE OrderItem SET qty = %s WHERE orderId = %s AND productId = %s" % (
+        query = "UPDATE OrderItem SET qty = %s WHERE orderId = %s AND productId = %s;" % (
             qty, order_id, product_id)
         cursor.execute(query)
 
     cursor.close()
     cnx.close()
-    return data
+    return data1
 
 
 def check_inventory(qty, product_id):
@@ -210,10 +267,10 @@ def check_inventory(qty, product_id):
             print(err)
 
     cursor = cnx.cursor()
-    checkQty = "SELECT inventoryQuantity FROM Product WHERE productId = %s" % product_id
+    checkQty = "SELECT inventoryQuantity FROM Product WHERE productId = %s;" % product_id
     cursor.execute(checkQty)
     data = cursor.fetchone()
-    if (data[0] - qty < 0):
+    if (data[0] - int(qty) < 0):
         cursor.close()
         cnx.close()
         return False
@@ -223,23 +280,27 @@ def check_inventory(qty, product_id):
         return True
 
 
-@app.route('/result', methods=['POST', 'GET'])
-def result():
+@app.route('/addquantity', methods=['POST', 'GET'])
+def addquantity():
     if request.method == 'POST':
         result = request.form
-        qty = result.get("quantity")
-        product_id = result.get("productId")
+        qty = result.get('quantity')
+        product_id = result.get('productId')
+        print(product_id)
+        print(qty)
         bool_add = check_inventory(qty, product_id)
 
         if (bool_add):
-            add_to_cart(customer_id, qty, product_id)
+            print(product_id)
+            print(qty)
+            data = add_to_cart(qty, product_id)
     #   Update qty for particular item
-        return render_template("result.html", result=result)
+        return render_template("cart.html", title="Cart | Village Bottle Shoppe", productId=product_id, qty=qty, data=data)
 
 
 @app.route("/getuserinput", methods=['GET', 'POST'])
 def getUserInput():
-    return render_template('registeruser.html')
+    return render_template('registeruser.html', title="Register User | Village Bottle Shoppe")
 
 
 @app.route("/registeruser", methods=['GET', 'POST'])
@@ -268,7 +329,7 @@ def registeruser():
 
         cursor.close()
         cnx.close()
-        return render_template("accountcreated.html", userId=user_id[0], userName=first_name)
+        return render_template("accountcreated.html", title="Account Created | Village Bottle Shoppe", userId=user_id[0], userName=first_name)
 
     except mysql.connector.Error as err:
         cnx.rollback()  # rollback changes
@@ -287,11 +348,12 @@ def registeruser():
 
 @app.route("/trylogin", methods=['GET', 'POST'])
 def trylogin():
-    return render_template('login.html')
+    return render_template('login.html', title="Login | Village Bottle Shoppe")
 
 
 @app.route("/loginuser", methods=['GET', 'POST'])
 def loginuser():
+    global cid
     user_id = request.form['userId']
 
     try:
@@ -305,7 +367,10 @@ def loginuser():
             cursor.close()
             cnx.close()
             bestsellers = view_top_sellers()
-            return render_template("customerhome.html", userId=customerId, bestsellers=bestsellers)
+            categories = get_categories()
+            cid = customerId[0][0]
+            print("cid = ", cid)
+            return render_template("customerhome.html", title="Home Page | Village Bottle Shoppe", userId=customerId[0], bestsellers=bestsellers, categories=categories)
         else:
             return render_template("begin.html", title="Village Bottle Shoppe", error="Unsuccessful_login")
 
@@ -323,7 +388,7 @@ def loginuser():
 
 @app.route("/tryloginseller", methods=['GET', 'POST'])
 def tryloginseller():
-    return render_template('sellerlogin.html')
+    return render_template('sellerlogin.html', title="Seller Login | Village Bottle Shoppe")
 
 
 @app.route("/loginseller", methods=['GET', 'POST'])
@@ -332,7 +397,7 @@ def loginseller():
     password = request.form['password']
 
     if (username == "admin" and password == "password123"):
-        return render_template("sellerhome.html")
+        return render_template("sellerhome.html", title="Seller Home | Village Bottle Shoppe")
     else:
         return render_template("begin.html", title="Village Bottle Shoppe", error="Unsuccessful_seller_login")
 

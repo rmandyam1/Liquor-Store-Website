@@ -2,49 +2,49 @@
 <html>
 
 <head>
-  <style>
-    * {
-      font-family: Helvetica, sans-serif;
-    }
+    <style>
+        * {
+            font-family: Helvetica, sans-serif;
+        }
 
-    table {
-      border-collapse: collapse;
-      width: 100%;
-    }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
 
-    td,
-    th {
-      border: 1px solid #dddddd;
-      text-align: left;
-      padding: 8px;
-    }
+        td,
+        th {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
 
-    tr:nth-child(even) {
-      background-color: #dddddd;
-    }
-  </style>
+        tr:nth-child(even) {
+            background-color: #dddddd;
+        }
+    </style>
 </head>
 
 <body>
-  <h2>View Inventory</h2>
+    <h2>View Inventory</h2>
 
-  <table>
-    <tr>
-      <th>Product ID</th>
-      <th>Product</th>
-      <th>Category</th>
-      <th>Inventory Left</th>
-    </tr>
+    <table>
+        <tr>
+            <th>Product ID</th>
+            <th>Product</th>
+            <th>Category</th>
+            <th>Inventory Left</th>
+        </tr>
 
-    {% for item in data %}
-    <tr>
-      <td>{{item[0]}}</td>
-      <td>{{item[1]}}</td>
-      <td>{{item[2]}}</td>
-      <td>{{item[4]}}</td>
-    </tr>
-    {% endfor %}
-  </table>
+        {% for item in data %}
+        <tr>
+            <td>{{item[0]}}</td>
+            <td>{{item[1]}}</td>
+            <td>{{item[2]}}</td>
+            <td>{{item[4]}}</td>
+        </tr>
+        {% endfor %}
+    </table>
 </body>
 
 </html>
