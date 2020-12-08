@@ -196,7 +196,7 @@ def add_to_cart(customer_id, qty, product_id):
     return data
 
 
-def check_inventory(customer_id, qty, product_id):
+def check_inventory(product_id):
     try:
         cnx = mysql.connector.connect(
             user='root', password='12345', host='104.154.215.223', database='village_bottle_shoppe')
@@ -228,7 +228,7 @@ def result():
         result = request.form
         qty = result.get("quantity")
         product_id = result.get("productId")
-        bool_add = update_inventory(customer_id, qty, product_id)
+        bool_add = check_inventory(product_id)
 
         if (bool_add):
             add_to_cart(customer_id, qty, productId)
@@ -236,10 +236,55 @@ def result():
         return render_template("result.html", result=result)
 
 
+@app.route("/getuserinput", methods=['GET', 'POST'])
+def getUserInput():
+    return render_template('registeruser.html')
+
+
+@app.route("/registeruser", methods=['GET', 'POST'])
+def registeruser():
+    first_name = request.form['fname']
+    last_name = request.form['lname']
+    age = request.form.get('age')
+    acc_num = request.form.get('accNum')
+    routing_num = request.form.get('routeNum')
+    if (int(age) < 21):
+        return render_template("begin.html", title="Village Bottle Shoppe")
+
+    try:
+        cnx = mysql.connector.connect(user='root', password='12345', host='104.154.215.223', database='village_bottle_shoppe', autocommit=False)
+
+        cursor = cnx.cursor()
+        cnx.start_transaction(isolation_level='SERIALIZABLE')
+        cursor.execute("INSERT INTO BankingInfo(accountNum, routingNum) VALUES(%s, %s);" % (acc_num, routing_num))
+        cursor.execute("SELECT MAX(bankId) FROM BankingInfo;")
+        bank_id = cursor.fetchone()
+        cursor.execute("INSERT INTO Customer(firstName, lastName, age, bankId) VALUES(%s, %s, %s, %s);", (first_name, last_name, age, bank_id[0]))
+        cursor.execute("SELECT MAX(customerId) FROM Customer;")
+        user_id = cursor.fetchone()
+        cursor.execute("INSERT INTO Orders(completedDate, transactionAmount, customerId) VALUES(NULL, NULL, %s);" % (user_id[0]))
+        cnx.commit()
+
+        return render_template("accountcreated.html", userId=user_id[0], userName=first_name)
+
+    except mysql.connector.Error as err:
+        cnx.rollback()  # rollback changes
+        print("Rolling back ...")
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            print("Something is wrong with your user name or password")
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            print("Database does not exist")
+        else:
+            print(err)
+
+    finally:
+        cursor.close()
+        cnx.close()
+
+
 if __name__ == "__main__":
     app.run(debug=True)
-    render_template("begin.html")
-
+    render_template("begin.html", title="Village Bottle Shoppe")
 
 # @app.route("/")
 # def homepage():
