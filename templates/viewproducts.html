@@ -53,7 +53,7 @@
             <p>{{item[2]}}</p>
             <p><small>{{item[3]}}</small></p>
             <h4>${{item[5]}}</h4>
-            <form action="/action_page.php">
+            <form action = "http://localhost:5000/result" method = "POST">
                 <label for="quantity">Quantity (max 10):</label>
                 <input type="number" id="quantity" name="quantity" min="1" max="10"
                     style="width: 20%; font-size: 16px">
