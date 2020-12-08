@@ -42,16 +42,17 @@
             box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
             padding: 16px;
             text-align: center;
-            background-color: #f1f1f1;
+            background-color: #fffff0;
         }
 
         .parallel {
-            overflow: hidden;
+            display: flex;
+            justify-content: space-between;
         }
 
         .button {
             border: none;
-            color: white;
+            color: #fffff0;
             padding: 5px 5px;
             text-align: center;
             text-decoration: none;
@@ -59,17 +60,22 @@
             font-size: 14px;
             margin: 4px 2px;
             cursor: pointer;
-            background-color: #4CAF50;
+            background-color: #380015;
         }
     </style>
 </head>
 
 <body>
 
-    <h2>Bestsellers</h2>
+    <h2>Home Page</h2>
 
+
+    <div class="parallel">
+        <h3>Bestsellers:</h3>
+        <a href="/viewproducts"><button class="button">View All Products ></button></a>
+    </div>
     <div class="row">
-        {% for item in data %}
+        {% for item in bestsellers %}
         <div class="column">
             <div class="card">
                 <h3>{{item[1]}}</h3>
@@ -88,6 +94,9 @@
         </div>
         {% endfor %}
     </div>
+
+    <h3>Categories:</h3>
+    
 
 </body>
 

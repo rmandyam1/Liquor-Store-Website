@@ -13,6 +13,29 @@ def homepage():
     return render_template("begin.html", title="Village Bottle Shoppe", error="<None>")
 
 
+def select_all_ps(table_name):
+    try:
+        cnx = mysql.connector.connect(
+            user='root', password='12345', host='104.154.215.223', database='village_bottle_shoppe')
+    except mysql.connector.Error as err:
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            print("Something is wrong with your user name or password")
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            print("Database does not exist")
+        else:
+            print(err)
+
+    cursor = cnx.cursor()
+    query = "SELECT * FROM %s" % table_name
+    cursor.execute(query)
+    data = cursor.fetchall()
+
+    cursor.close()
+    cnx.close()
+
+    return data
+
+
 @app.route("/viewproducts")
 def view_products():
     data = select_all_ps("Product")
@@ -97,29 +120,6 @@ def sales_by_customer():
     return render_template("salesbycustomer.html", data=data)
 
 
-def select_all_ps(table_name):
-    try:
-        cnx = mysql.connector.connect(
-            user='root', password='12345', host='104.154.215.223', database='village_bottle_shoppe')
-    except mysql.connector.Error as err:
-        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-            print("Something is wrong with your user name or password")
-        elif err.errno == errorcode.ER_BAD_DB_ERROR:
-            print("Database does not exist")
-        else:
-            print(err)
-
-    cursor = cnx.cursor()
-    query = "SELECT * FROM %s" % table_name
-    cursor.execute(query)
-    data = cursor.fetchall()
-
-    cursor.close()
-    cnx.close()
-
-    return data
-
-
 def completed_orders_ps():
     try:
         cnx = mysql.connector.connect(
@@ -142,7 +142,6 @@ def completed_orders_ps():
     return data
 
 
-@app.route("/bestsellers")
 def view_top_sellers():
     try:
         cnx = mysql.connector.connect(
@@ -162,7 +161,7 @@ def view_top_sellers():
 
     cursor.close()
     cnx.close()
-    return render_template("bestsellers.html", data=data)
+    return data
 
 
 def add_to_cart(customer_id, qty, product_id):
@@ -233,7 +232,7 @@ def result():
         bool_add = check_inventory(qty, product_id)
 
         if (bool_add):
-            add_to_cart(customer_id, qty, productId)
+            add_to_cart(customer_id, qty, product_id)
     #   Update qty for particular item
         return render_template("result.html", result=result)
 
@@ -305,7 +304,8 @@ def loginuser():
             # Login successful
             cursor.close()
             cnx.close()
-            return render_template("home.html", userId=customerId)
+            bestsellers = view_top_sellers()
+            return render_template("customerhome.html", userId=customerId, bestsellers=bestsellers)
         else:
             return render_template("begin.html", title="Village Bottle Shoppe", error="Unsuccessful_login")
 
