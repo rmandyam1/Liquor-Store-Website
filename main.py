@@ -283,6 +283,7 @@ def check_inventory(qty, product_id):
         cnx.close()
         return True
 
+@app.route("/getcart")
 def getcartitems():
     try:
         cnx = mysql.connector.connect(
@@ -304,7 +305,7 @@ def getcartitems():
     cursor.close()
     cnx.close()
 
-    return data
+    return render_template("cart.html", title="Cart | Village Bottle Shoppe", data=data)
 
 
 @app.route('/addquantity', methods=['POST', 'GET'])
@@ -321,9 +322,10 @@ def addquantity():
             print(product_id)
             print(qty)
             add_to_cart(qty, product_id)
-            data = getcartitems()
+            return getcartitems()
+
     #   Update qty for particular item
-        return render_template("cart.html", title="Cart | Village Bottle Shoppe", productId=product_id, qty=qty, data=data)
+        # return render_template("cart.html", title="Cart | Village Bottle Shoppe", productId=product_id, qty=qty, data=data)
 
 
 @app.route("/getuserinput", methods=['GET', 'POST'])
