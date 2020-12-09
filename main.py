@@ -192,12 +192,12 @@ def monthly_sales_report(month):
  
     cursor.close()
     cnx.close()
-    return data
+    return render_template("monthlysales.html", title="Monthly Sales Report | Village Bottle Shoppe", data=data)
 
 
 @app.route("/monthlysalesreport")
 def currentmonthreport():
-    monthly_sales_report(int(datetime.today().month))
+    return monthly_sales_report(int(datetime.today().month))
 
 def completed_orders_ps():
     try:
