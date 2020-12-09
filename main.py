@@ -444,6 +444,14 @@ def loginuser():
         cnx.close()
         return render_template("begin.html", title="Village Bottle Shoppe", error="Database_issues")
 
+@app.route("/homep", methods=['GET', 'POST'])
+def homep():
+    global cid
+    bestsellers = view_top_sellers()
+    categories = get_categories()
+    return render_template("customerhome.html", title="Home Page | Village Bottle Shoppe", userId=cid, bestsellers=bestsellers, categories=categories)
+
+
 @app.route("/tryloginseller", methods=['GET', 'POST'])
 def tryloginseller():
     return render_template('sellerlogin.html', title="Seller Login | Village Bottle Shoppe")
@@ -458,6 +466,40 @@ def loginseller():
         return render_template("sellerhome.html", title="Seller Home | Village Bottle Shoppe")
     else:
         return render_template("begin.html", title="Village Bottle Shoppe", error="Unsuccessful_seller_login")
+
+
+@app.route("/deleteitem", methods=['GET', 'POST'])
+def deleteitem():
+    global cid
+    print("POST request sent")
+    product_id = request.form['productId']
+    print("DELETE = %d", product_id)
+
+    try:
+        cnx = mysql.connector.connect(user='root', password='12345', host='104.154.215.223', database='village_bottle_shoppe')
+
+        cursor = cnx.cursor()
+        cart_id = get_cart_id()
+        print(product_id)
+        print(cart_id)
+        cursor.execute("DELETE FROM OrderItem WHERE productId = %s AND orderId = %s" % (product_id, cart_id))
+        cnx.commit()
+
+        cursor.close()
+        cnx.close()
+        return getcartitems()
+
+    except mysql.connector.Error as err:
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            print("Something is wrong with your user name or password")
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            print("Database does not exist")
+        else:
+            print(err)
+        
+        cursor.close()
+        cnx.close()
+        return render_template("begin.html", title="Village Bottle Shoppe", error="Database_issues")
 
 
 if __name__ == "__main__":

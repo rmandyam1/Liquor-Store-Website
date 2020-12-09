@@ -35,7 +35,7 @@
             document.getElementById("myTable").deleteRow(i);
         }
     </script>
-    <table id= "myTable">
+    <table id="myTable">
         <tr>
             <th>Product Name</th>
             <th>Category</th>
@@ -50,9 +50,16 @@
             <td>{{item[2]}}</td>
             <td>{{item[3]}}</td>
             <td>{{item[4]}}</td>
-            <td><input type="button" value="Remove" onclick="deleteRow(this)"></td>
+            <td>
+                <form action="{{url_for('deleteitem')}}" method="POST">
+                    <input type="text" id="productId" name="productId" style="font-size: 5px; visibility:hidden" value="{{item[0]}}">
+                    <button type="submit" name="Remove" onclick="deleteRow(this)">Remove</button>
+                </form>
+            </td>
         </tr>
         {% endfor %}
     </table>
+    <a href='/homep'><h3>Home</h3></a>
 </body>
+
 </html>
