@@ -3,6 +3,8 @@ from flask import Flask, render_template, request
 import mysql.connector
 from mysql.connector import errorcode
 
+from datetime import datetime
+
 app = Flask(__name__)
 username = "admin"
 password = "password123"
@@ -124,6 +126,7 @@ def customer_order_history():
     cnx.close()
     return data
 
+# Reports
 
 @app.route("/salesbycustomer")
 def sales_by_customer():
@@ -149,28 +152,6 @@ def sales_by_customer():
     return render_template("salesbycustomer.html", title="Sales Report | Village Bottle Shoppe", data=data)
 
 
-def completed_orders_ps():
-    try:
-        cnx = mysql.connector.connect(
-            user='root', password='12345', host='104.154.215.223', database='village_bottle_shoppe')
-    except mysql.connector.Error as err:
-        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-            print("Something is wrong with your user name or password")
-        elif err.errno == errorcode.ER_BAD_DB_ERROR:
-            print("Database does not exist")
-        else:
-            print(err)
-
-    cursor = cnx.cursor()
-    query = "SELECT orderId FROM Orders WHERE completedDate IS NOT NULL;"
-    cursor.execute(query)
-    data = cursor.fetchall()
-
-    cursor.close()
-    cnx.close()
-    return data
-
-
 def view_top_sellers():
     try:
         cnx = mysql.connector.connect(
@@ -185,6 +166,53 @@ def view_top_sellers():
 
     cursor = cnx.cursor()
     query = "SELECT DISTINCT p.productId, p.name, p.category, p.description, p.price, SUM(o.quantity), p.inventoryQuantity FROM Product p, OrderItem o WHERE o.productId = p.productId AND o.orderId IN (SELECT orderId FROM Orders WHERE completedDate IS NOT NULL) GROUP BY o.productId, p.name, p.category, p.description, p.price, p.inventoryQuantity ORDER BY SUM(o.quantity) DESC LIMIT 5;"
+    cursor.execute(query)
+    data = cursor.fetchall()
+
+    cursor.close()
+    cnx.close()
+    return data
+
+
+def monthly_sales_report(month):
+    try:
+        cnx = mysql.connector.connect(user='root', password='12345', host='104.154.215.223', database='village_bottle_shoppe')
+    except mysql.connector.Error as err:
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            print("Something is wrong with your user name or password")
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            print("Database does not exist")
+        else:
+            print(err)
+ 
+    cursor = cnx.cursor()
+    query = "SELECT firstName, lastName, transactionAmount, round((transactionAmount * .07),2) AS SALES_TAX, round((transactionAmount * .93),2) AS REVENUE from Customer C inner join Orders O on C.customerid = O.customerid where MONTH(completedDate) = %s;" % month
+    cursor.execute(query)
+    data = cursor.fetchall()
+ 
+    cursor.close()
+    cnx.close()
+    return data
+
+
+@app.route("/monthlysalesreport")
+def currentmonthreport():
+    monthly_sales_report(int(datetime.today().month))
+
+def completed_orders_ps():
+    try:
+        cnx = mysql.connector.connect(
+            user='root', password='12345', host='104.154.215.223', database='village_bottle_shoppe')
+    except mysql.connector.Error as err:
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            print("Something is wrong with your user name or password")
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            print("Database does not exist")
+        else:
+            print(err)
+
+    cursor = cnx.cursor()
+    query = "SELECT orderId FROM Orders WHERE completedDate IS NOT NULL;"
     cursor.execute(query)
     data = cursor.fetchall()
 
