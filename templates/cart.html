@@ -6,23 +6,53 @@
         * {
             font-family: Helvetica, sans-serif;
         }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        td,
+        th {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #dddddd;
+        }
     </style>
 </head>
 
 <body>
+    <h2>View Cart</h2>
 
-    <h1>Cart</h1>
 
-    <p>{{productId}} -> {{qty}}</p>
+    <script>
+        function deleteRow(r) {
+            var i = r.parentNode.parentNode.rowIndex;
+            document.getElementById("myTable").deleteRow(i);
+        }
+    </script>
+    <table id= "myTable">
+        <tr>
+            <th>Product Name</th>
+            <th>Category</th>
+            <th>Quantity</th>
+            <th>Price</th>
+            <th>Remove</th>
+        </tr>
 
-    {% for item in data %}
-    <p>Name: {{item[0]}}</p>
-    <p>Category: {{item[1]}}</p>
-    <p>Price: {{item[2]}}</p>
-    {% endfor %}
-
-    <a href='/trylogin'><h3>Go to login page</h3></a>
-
+        {% for item in data %}
+        <tr>
+            <td>{{item[1]}}</td>
+            <td>{{item[2]}}</td>
+            <td>{{item[3]}}</td>
+            <td>{{item[4]}}</td>
+            <td><input type="button" value="Remove" onclick="deleteRow(this)"></td>
+        </tr>
+        {% endfor %}
+    </table>
 </body>
-
 </html>

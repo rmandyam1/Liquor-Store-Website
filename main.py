@@ -184,7 +184,7 @@ def view_top_sellers():
             print(err)
 
     cursor = cnx.cursor()
-    query = "SELECT DISTINCT p.productId, p.name, p.category, p.description, p.price, o.quantity, p.inventoryQuantity FROM Product p, OrderItem o WHERE o.productId = p.productId AND o.orderId IN (SELECT orderId FROM Orders WHERE completedDate IS NOT NULL) ORDER BY o.quantity DESC LIMIT 5;"
+    query = "SELECT DISTINCT p.productId, p.name, p.category, p.description, p.price, SUM(o.quantity), p.inventoryQuantity FROM Product p, OrderItem o WHERE o.productId = p.productId AND o.orderId IN (SELECT orderId FROM Orders WHERE completedDate IS NOT NULL) GROUP BY o.productId, p.name, p.category, p.description, p.price, p.inventoryQuantity ORDER BY SUM(o.quantity) DESC LIMIT 5;"
     cursor.execute(query)
     data = cursor.fetchall()
 
@@ -234,6 +234,7 @@ def add_to_cart(qty, product_id):
     order_id = get_cart_id()
     print("Back from get cart")
     print(product_id)
+    print(order_id)
     print(qty)
     cursor.execute("SELECT name, category, price FROM Product WHERE productId = %s;" % product_id)
     data1 = cursor.fetchall()
@@ -241,13 +242,16 @@ def add_to_cart(qty, product_id):
     data = cursor.fetchall()
     num = cursor.rowcount
     if (num == 0):
+        print("Item doesn't exist in cart yet")
         query = "INSERT INTO OrderItem VALUES(%s, %s, %s);" % (
             order_id, product_id, qty)
         cursor.execute(query)
+        cnx.commit()
     else:
-        query = "UPDATE OrderItem SET qty = %s WHERE orderId = %s AND productId = %s;" % (
-            qty, order_id, product_id)
-        cursor.execute(query)
+        print("Item already exists in cart")
+        cursor.execute("UPDATE OrderItem SET quantity = %s WHERE orderId = %s AND productId = %s;" % (
+            qty, order_id, product_id))
+        cnx.commit()
 
     cursor.close()
     cnx.close()
@@ -279,6 +283,29 @@ def check_inventory(qty, product_id):
         cnx.close()
         return True
 
+def getcartitems():
+    try:
+        cnx = mysql.connector.connect(
+            user='root', password='12345', host='104.154.215.223', database='village_bottle_shoppe')
+    except mysql.connector.Error as err:
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            print("Something is wrong with your user name or password")
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            print("Database does not exist")
+        else:
+            print(err)
+
+    cursor = cnx.cursor()
+    order_id = get_cart_id()
+    query = "SELECT o.productId, p.name, p.category, o.quantity, (p.price * o.quantity) as TotalPrice FROM OrderItem o INNER JOIN Product p ON o.productId = p.productId WHERE o.orderId = %s;" % order_id
+    cursor.execute(query)
+    data = cursor.fetchall()
+
+    cursor.close()
+    cnx.close()
+
+    return data
+
 
 @app.route('/addquantity', methods=['POST', 'GET'])
 def addquantity():
@@ -293,7 +320,8 @@ def addquantity():
         if (bool_add):
             print(product_id)
             print(qty)
-            data = add_to_cart(qty, product_id)
+            add_to_cart(qty, product_id)
+            data = getcartitems()
     #   Update qty for particular item
         return render_template("cart.html", title="Cart | Village Bottle Shoppe", productId=product_id, qty=qty, data=data)
 
